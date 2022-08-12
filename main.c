@@ -7,8 +7,9 @@
 #include <sys/user.h>
 #include <sys/syscall.h>
 #include <signal.h>
+#include <errno.h>
 
-#define EXEC_PATH "/home/mirenk/sh365/ptrace_emu/bin/test_asm_hexedit"
+#define EXEC_PATH "/home/mirenk/sh365/ptrace_emu/bin/test_asm"
 
 int main() {
     int status;
@@ -21,8 +22,8 @@ int main() {
 
     if(target == 0) {
         ptrace(PTRACE_TRACEME, NULL, NULL, NULL);
-        execlp(EXEC_PATH, EXEC_PATH, NULL);
-        printf("failed\n");
+        status = execlp(EXEC_PATH, EXEC_PATH, NULL);
+        printf("failed. %d\n", errno);
     } else if(target == -1) {
         printf("fork failed\n");
         exit(-1);
