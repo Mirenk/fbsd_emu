@@ -9,7 +9,7 @@
 #include <signal.h>
 #include <errno.h>
 
-#define EXEC_PATH "/home/mirenk/sh365/ptrace_emu/bin/test_asm"
+#define EXEC_PATH "/home/mirenk/sh365/ptrace_emu/bin/test_crt"
 
 int main() {
     int status;
@@ -49,7 +49,7 @@ int main() {
         } else if (WIFSTOPPED(status) && WSTOPSIG(status) == SIGTRAP) {
             printf("SIGTRAP.\n");
             ptrace(PTRACE_GETREGS, target, NULL, &regs);
-            printf("orig_rax: 0x%llx\n", regs.orig_rax);
+            printf("orig_rax: 0x%llx, rip:0x%llx\n", regs.orig_rax, regs.rip);
             is_enter_stop = prev_orig_rax == regs.orig_rax ? !is_enter_stop : 1;
             prev_orig_rax = regs.orig_rax;
             if (is_enter_stop && regs.orig_rax == 4) {
@@ -66,6 +66,13 @@ int main() {
                 ptrace(PTRACE_SETREGS, target, NULL, &regs);
                 ptrace(PTRACE_GETREGS, target, NULL, &regs);
                 printf("modify orig_rax(exit): 0x%llx\n", regs.orig_rax);
+            } else if (is_enter_stop && regs.orig_rax == 202) {
+                printf("freebsd orig_rax(_sysctl): 0x%llx\n", regs.orig_rax);
+                regs.orig_rax = SYS__sysctl;
+                prev_orig_rax = SYS__sysctl;
+                ptrace(PTRACE_SETREGS, target, NULL, &regs);
+                ptrace(PTRACE_GETREGS, target, NULL, &regs);
+                printf("modify orig_rax(_sysctl): 0x%llx\n", regs.orig_rax);
             }
         }
     }
